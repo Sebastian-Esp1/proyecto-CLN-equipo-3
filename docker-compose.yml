@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pia
+      POSTGRES_PASSWORD: pia_local
+      POSTGRES_DB: sazon
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pia -d sazon"]
+      interval: 5s
+      retries: 10
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  tests:
+    build: .
+    command: pytest -q --cov=app --cov-report=term-missing
+    depends_on:
+      db:
+        condition: service_healthy
